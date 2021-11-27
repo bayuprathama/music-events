@@ -1,22 +1,31 @@
+import Link from 'next/link';
 import Layout from '@/components/Layout';
-import { useEffect } from 'react';
 import { API_URL } from '@/config/index';
+import EventItem from '@/components/EventItem';
 
 export default function Home({ events }) {
-  console.log(API_URL);
-  console.log(events);
   return (
     <Layout>
-      <h1>Home page</h1>
+      <h1>Upcoming Events</h1>
+      {events.length === 0 && <h3>There is no event to show</h3>}
+      {events.map((evt) => {
+        return <EventItem key={evt.id} evt={evt} />;
+      })}
+      {events.length > 0 && (
+        <Link href="/events">
+          <a className="btn-secondary">Show all events</a>
+        </Link>
+      )}
     </Layout>
   );
 }
 
-export async function getServerSideProps() {
+export async function getStaticProps() {
   const res = await fetch(`${API_URL}/api/events`);
   const events = await res.json();
 
   return {
-    props: { events },
+    props: { events: events.slice(0, 3) },
+    revalidate: 1,
   };
 }
