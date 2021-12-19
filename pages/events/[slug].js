@@ -1,20 +1,37 @@
-import Layout from '@/components/Layout';
-import { API_URL } from '@/config/index';
+import { FaPencilAlt, FaTimes } from 'react-icons/fa';
 import Image from 'next/image';
 import Link from 'next/link';
-import { FaPencilAlt, FaTimes } from 'react-icons/fa';
+import { ToastContainer, toast } from 'react-toastify';
+import { useRouter } from 'next/router';
+import 'react-toastify/dist/ReactToastify.css';
+import Layout from '@/components/Layout';
+import { API_URL } from '@/config/index';
 import styles from '@/styles/Event.module.css';
 
 export default function EventPage({ evt }) {
-  const deleteEvent = (e) => {
-    console.log('delete');
+  const router = useRouter();
+
+  const deleteEvent = async (e) => {
+    if (confirm(`Are you sure want to DELETE ${evt.name}?`)) {
+      const res = await fetch(`${API_URL}/events/${evt.id}`, {
+        method: 'DELETE',
+      });
+
+      const data = await res.json();
+
+      if (!res.ok) {
+        toast(data.message);
+        return;
+      }
+      router.push('/events');
+    }
   };
 
   return (
     <Layout>
       <div className={styles.event}>
         <div className={styles.controls}>
-          <Link href={`events/edit/${evt.id}`}>
+          <Link href={`/events/edit/${evt.id}`}>
             <a>
               <FaPencilAlt /> Edit Event
             </a>
@@ -28,6 +45,9 @@ export default function EventPage({ evt }) {
           {new Date(evt.date).toLocaleDateString('en-US')} at {evt.time}
         </span>
         <h1>{evt.name}</h1>
+
+        <ToastContainer />
+
         {evt.image && (
           <div className={styles.image}>
             <Image
@@ -79,14 +99,3 @@ export async function getStaticProps({ params: { slug } }) {
     revalidate: 1,
   };
 }
-
-// export async function getServerSideProps({ query: { slug } }) {
-//   const res = await fetch(`${API_URL}/api/events/${slug}`);
-//   const events = await res.json();
-
-//   return {
-//     props: {
-//       evt: events[0],
-//     },
-//   };
-// }
